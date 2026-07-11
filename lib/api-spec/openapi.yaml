@@ -1,0 +1,98 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: coaching
+    description: AI performance coaching and scoring
+paths:
+  /coaching/score:
+    post:
+      operationId: scorePerformance
+      tags: [coaching]
+      summary: Score a recorded performance
+      description: Transcribes audio and returns an AI-generated score and tips, calibrated to the student's grade level.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScoreRequest"
+      responses:
+        "200":
+          description: Score and coaching tips
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScoreResponse"
+        "400":
+          description: Invalid request body
+        "429":
+          description: Rate limit exceeded
+        "500":
+          description: Scoring service unavailable
+        "502":
+          description: AI returned an unexpected response format
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+components:
+  schemas:
+    ScoreRequest:
+      type: object
+      required: [category, exerciseName, exercisePrompt]
+      properties:
+        audioBase64:
+          type: string
+          description: Base64-encoded audio recording (optional)
+        category:
+          type: string
+          description: Skill category being scored (e.g. "acting")
+        grade:
+          type: string
+          description: Student's grade level (e.g. "8th Grade")
+        exerciseName:
+          type: string
+          description: Name of the exercise being performed
+        exercisePrompt:
+          type: string
+          description: Full exercise instructions
+    ScoreResponse:
+      type: object
+      required: [score, tips]
+      properties:
+        score:
+          type: number
+          minimum: 1
+          maximum: 10
+          description: AI-assigned score from 1 to 10
+        tips:
+          type: array
+          items:
+            type: string
+          description: Up to 3 coaching tips
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
